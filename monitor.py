@@ -36,14 +36,13 @@ class WebsiteMonitor:
 
     def check_site(self, url):
         """Checks a single URL with a retry mechanism. Disables SSL verification."""
-        # Enhanced headers with User-Provided UA and Referer to satisfy strict WAFs
+        # Use minimal headers that were proven to work in debug_site.py
+        # Avoid Referer/Origin/Sec-Fetch headers as they cause 400 Bad Request on goedy.kr
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Connection': 'keep-alive',
-            'Referer': url,  # Some sites check Referer
-            'Origin': url    # Some sites check Origin
+            'Connection': 'keep-alive'
         }
         
         def translate_error(error_msg):
@@ -59,7 +58,7 @@ class WebsiteMonitor:
             if "404" in msg:
                 return "페이지를 찾을 수 없습니다. (404 Not Found)"
             if "400" in msg:
-                return "잘못된 요청(400): 서버가 헤더/쿠키/리퍼러를 거부함."
+                return "잘못된 요청(400): 서버 차단됨 (헤더 호환성 문제)"
             if "500" in msg:
                 return "서버 내부 오류입니다. (500 Internal Server Error)"
             if "502" in msg or "503" in msg:

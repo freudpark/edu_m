@@ -36,17 +36,12 @@ class WebsiteMonitor:
 
     def check_site(self, url):
         """Checks a single URL with a retry mechanism. Disables SSL verification."""
-        # Enhanced headers to mimic a real browser to avoid 400 Bad Request
+        # Enhanced headers: Simplified to avoid 400 Bad Request on legacy WAFs
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1'
+            'Connection': 'keep-alive'
         }
         
         def translate_error(error_msg):
@@ -62,7 +57,7 @@ class WebsiteMonitor:
             if "404" in msg:
                 return "페이지를 찾을 수 없습니다. (404 Not Found)"
             if "400" in msg:
-                return "잘못된 요청입니다. (400 Bad Request - 브라우저 헤더 필요)"
+                return "잘못된 요청(400): 서버가 헤더/쿠키를 거부함."
             if "500" in msg:
                 return "서버 내부 오류입니다. (500 Internal Server Error)"
             if "502" in msg or "503" in msg:

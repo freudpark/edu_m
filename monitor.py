@@ -36,8 +36,17 @@ class WebsiteMonitor:
 
     def check_site(self, url):
         """Checks a single URL with a retry mechanism. Disables SSL verification."""
+        # Enhanced headers to mimic a real browser to avoid 400 Bad Request
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1'
         }
         
         def translate_error(error_msg):
@@ -52,6 +61,8 @@ class WebsiteMonitor:
                 return "보안 인증서 오류가 발생했습니다."
             if "404" in msg:
                 return "페이지를 찾을 수 없습니다. (404 Not Found)"
+            if "400" in msg:
+                return "잘못된 요청입니다. (400 Bad Request - 브라우저 헤더 필요)"
             if "500" in msg:
                 return "서버 내부 오류입니다. (500 Internal Server Error)"
             if "502" in msg or "503" in msg:
@@ -59,14 +70,16 @@ class WebsiteMonitor:
             return f"접속 실패: {error_msg}"
 
         try:
+            session = requests.Session()
             # verify=False handles sites with self-signed or local government certs
-            response = requests.get(url, timeout=10, verify=False, headers=headers)
+            response = session.get(url, timeout=15, verify=False, headers=headers)
             response.raise_for_status()
             return True, None
         except requests.RequestException:
             # Retry once
             try:
-                response = requests.get(url, timeout=10, verify=False, headers=headers)
+                session = requests.Session()
+                response = session.get(url, timeout=15, verify=False, headers=headers)
                 response.raise_for_status()
                 return True, None
             except requests.RequestException as e:

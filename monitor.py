@@ -75,7 +75,9 @@ class WebsiteMonitor:
             pass
 
     def run_check(self):
-        """Checks all loaded URLs and returns failed sites."""
+        """Checks all loaded URLs in parallel and returns failed sites."""
+        import concurrent.futures
+        
         failed_sites = []
         is_network_up = self.check_network()
 
@@ -83,11 +85,21 @@ class WebsiteMonitor:
             self.log_error("Network Error: Cannot connect to internet (Google DNS check failed).")
             return {'network_error': True, 'failed_sites': []}
 
-        for name, url in self.urls.items():
+        # Helper function for threading
+        def check_single_url(item):
+            name, url = item
             success, error = self.check_site(url)
-            if not success:
-                self.log_error(f"Site Fail: {name} ({url}) - {error}")
-                failed_sites.append({'name': name, 'url': url, 'error': error})
+            return name, url, success, error
+
+        # Run checks in parallel
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_url = {executor.submit(check_single_url, item): item for item in self.urls.items()}
+            
+            for future in concurrent.futures.as_completed(future_to_url):
+                name, url, success, error = future.result()
+                if not success:
+                    self.log_error(f"Site Fail: {name} ({url}) - {error}")
+                    failed_sites.append({'name': name, 'url': url, 'error': error})
 
         return {'network_error': False, 'failed_sites': failed_sites}
 

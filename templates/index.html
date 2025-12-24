@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduMonitor</title>
+    <title>EduMonitor Lite</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         .fade-in {
-            animation: fadeIn 0.5s ease-in;
+            animation: fadeIn 0.3s ease-in;
         }
 
         @keyframes fadeIn {
@@ -23,54 +23,95 @@
                 opacity: 1;
             }
         }
+
+        /* Checkbox Toggle Styling */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #3b82f6;
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #3b82f6;
+        }
+
+        .toggle-checkbox {
+            right: 0;
+            z-index: 1;
+            border-color: white;
+            transition: all 0.3s;
+        }
+
+        .toggle-label {
+            width: 2.5rem;
+            height: 1.25rem;
+        }
     </style>
 </head>
 
-<body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen text-sm">
 
     <!-- Navbar -->
-    <nav class="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 class="text-xl font-bold flex items-center gap-2">
-                <i class="fas fa-shield-alt"></i> EduMonitor Ver 1.6
+    <nav class="bg-blue-600 text-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
+            <h1 class="text-lg font-bold flex items-center gap-2">
+                <i class="fas fa-shield-alt"></i> EduMonitor Lite
             </h1>
-            <div>
-                <!-- Future menu items -->
+            <div class="text-xs opacity-80">
+                Total: {{ urls|length }} Sites
             </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 py-6">
+    <main class="max-w-7xl mx-auto px-2 py-4">
 
-        <!-- Controls -->
-        <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm">
-            <div>
-                <h2 class="text-lg font-semibold">Website Status</h2>
-                <p class="text-sm text-gray-500">Total Sites: {{ urls|length }}</p>
+        <!-- Controls & Settings -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-3 rounded shadow-sm gap-3">
+
+            <!-- Auto Check Settings -->
+            <div class="flex items-center gap-4 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                <div class="flex items-center gap-2">
+                    <label for="autoCheckToggle" class="font-semibold text-gray-700 cursor-pointer select-none">Auto
+                        Check</label>
+                    <div
+                        class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="autoCheckToggle"
+                            class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300" />
+                        <label for="autoCheckToggle"
+                            class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1 border-l pl-3 border-gray-300">
+                    <span class="text-gray-500">Interval:</span>
+                    <input type="number" id="checkInterval" value="60" min="10"
+                        class="w-16 px-1 py-0.5 border rounded text-center text-gray-700 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Sec">
+                    <span class="text-gray-500">sec</span>
+                </div>
             </div>
-            <button id="checkBtn" onclick="runCheck()"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full shadow transition transform hover:scale-105 flex items-center gap-2">
-                <i class="fas fa-sync-alt" id="btnIcon"></i>
-                <span id="btnText">Check Now</span>
-            </button>
+
+            <!-- Manual Trigger -->
+            <div class="flex items-center gap-3">
+                <div id="statusAlert" class="hidden px-3 py-1 rounded text-white text-xs font-bold"></div>
+                <button id="checkBtn" onclick="manualCheck()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-5 rounded-full shadow-sm text-xs transition transform hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-sync-alt" id="btnIcon"></i>
+                    <span id="btnText">Check Now</span>
+                </button>
+            </div>
         </div>
 
-        <!-- Status Overview (Hidden initially) -->
-        <div id="statusAlert" class="hidden mb-6 p-4 rounded-lg text-white font-bold text-center"></div>
-
-        <!-- Site List Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="siteGrid">
+        <!-- Compact Site Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2" id="siteGrid">
             {% for name, url in urls.items() %}
             <div id="card-{{ loop.index }}"
-                class="site-card bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-gray-300 flex items-center justify-between">
-                <div class="flex-1 min-w-0">
-                    <h3 class="font-bold text-gray-800 truncate" title="{{ name }}">{{ name }}</h3>
-                    <a href="{{ url }}" target="_blank" class="text-sm text-blue-500 hover:underline truncate block">{{
-                        url }}</a>
-                    <p class="text-xs text-gray-400 mt-1 status-msg">Ready</p>
+                class="site-card bg-white p-2 rounded border border-gray-200 flex items-center justify-between hover:shadow-md transition">
+                <div class="flex-1 min-w-0 pr-2">
+                    <h3 class="font-bold text-gray-700 truncate text-xs" title="{{ name }}">{{ name }}</h3>
+                    <div class="text-[10px] text-gray-400 mt-0.5 status-msg truncate">Ready</div>
                 </div>
-                <div class="status-icon text-gray-300 text-2xl pl-4">
+                <div class="status-icon text-gray-300 text-lg">
                     <i class="fas fa-circle"></i>
                 </div>
             </div>
@@ -78,25 +119,25 @@
         </div>
 
         <!-- Connection Check List Table (Bottom) -->
-        <div class="mt-10 bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="bg-gray-800 text-white px-6 py-3">
-                <h3 class="font-bold"><i class="fas fa-list-ul"></i> Connection Check List</h3>
+        <div class="mt-6 bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gray-100 px-4 py-2 border-b flex justify-between">
+                <h3 class="font-bold text-gray-700 text-xs"><i class="fas fa-list-ul"></i> Detailed Logs</h3>
+                <span id="lastCheckTime" class="text-[10px] text-gray-400">Last Checked: -</span>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-100 text-gray-600 border-b">
+            <div class="max-h-60 overflow-y-auto">
+                <table class="w-full text-[11px] text-left">
+                    <thead class="bg-gray-50 text-gray-600 sticky top-0">
                         <tr>
-                            <th class="px-6 py-3 w-10">#</th>
-                            <th class="px-6 py-3">Region Name</th>
-                            <th class="px-6 py-3">URL</th>
-                            <th class="px-6 py-3">Status</th>
-                            <th class="px-6 py-3">Message</th>
+                            <th class="px-3 py-2 w-8">#</th>
+                            <th class="px-3 py-2">Region</th>
+                            <th class="px-3 py-2 hidden sm:table-cell">URL</th>
+                            <th class="px-3 py-2 w-16">Status</th>
+                            <th class="px-3 py-2">Message</th>
                         </tr>
                     </thead>
-                    <tbody id="checkListBody" class="divide-y divide-gray-200">
+                    <tbody id="checkListBody" class="divide-y divide-gray-100">
                         <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-gray-400">Click "Check Now" to see
-                                results.</td>
+                            <td colspan="5" class="px-3 py-4 text-center text-gray-400">Waiting for check...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -105,104 +146,124 @@
 
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center text-gray-400 text-sm py-6">
-        &copy; 2025 EduMonitor. All rights reserved.
-    </footer>
-
     <script>
+        let autoCheckInterval = null;
+
+        // Auto Check Toggle Logic
+        document.getElementById('autoCheckToggle').addEventListener('change', function (e) {
+            const intervalInput = document.getElementById('checkInterval');
+            if (e.target.checked) {
+                intervalInput.disabled = true;
+                const sec = parseInt(intervalInput.value) || 60;
+                startAutoCheck(sec);
+            } else {
+                intervalInput.disabled = false;
+                stopAutoCheck();
+            }
+        });
+
+        function startAutoCheck(seconds) {
+            if (autoCheckInterval) clearInterval(autoCheckInterval);
+            manualCheck(); // Run immediately once
+            autoCheckInterval = setInterval(manualCheck, seconds * 1000);
+        }
+
+        function stopAutoCheck() {
+            if (autoCheckInterval) clearInterval(autoCheckInterval);
+            autoCheckInterval = null;
+        }
+
+        async function manualCheck() {
+            if (document.getElementById('checkBtn').disabled && !autoCheckInterval) return;
+            // If auto check is on, we allow re-triggering silently or just skip if busy?
+            // Let's allow parallel requests or just wait. JS is single threaded.
+            await runCheck();
+        }
+
         async function runCheck() {
             const btn = document.getElementById('checkBtn');
             const btnIcon = document.getElementById('btnIcon');
             const btnText = document.getElementById('btnText');
             const statusAlert = document.getElementById('statusAlert');
             const listBody = document.getElementById('checkListBody');
+            const lastCheckTime = document.getElementById('lastCheckTime');
 
             // UI Loading State
-            btn.disabled = true;
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            if (!document.getElementById('autoCheckToggle').checked) {
+                btn.disabled = true;
+                btn.classList.add('opacity-75');
+            }
             btnIcon.classList.add('fa-spin');
-            btnText.innerText = 'Checking...';
-            statusAlert.classList.add('hidden');
-            listBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-blue-500"><i class="fas fa-spinner fa-spin"></i> Checking sites...</td></tr>';
+            if (btnText.innerText === 'Check Now') btnText.innerText = 'Checking...';
 
-            // Reset Cards
-            document.querySelectorAll('.site-card').forEach(card => {
-                card.classList.remove('border-green-500', 'border-red-500', 'border-orange-500');
-                card.classList.add('border-gray-300');
-                card.querySelector('.status-icon').className = 'status-icon text-gray-300 text-2xl pl-4';
-                card.querySelector('.status-icon i').className = 'fas fa-circle';
-                card.querySelector('.status-msg').innerText = 'Checking...';
-                card.querySelector('.status-msg').className = 'text-xs text-blue-400 mt-1 status-msg';
-            });
+            // Visual feedback on cards (Pulse)
+            document.querySelectorAll('.site-card .status-icon').forEach(el => el.classList.add('animate-pulse'));
 
             try {
                 const response = await fetch('/api/check');
                 const data = await response.json();
 
+                // Stop Pulse
+                document.querySelectorAll('.site-card .status-icon').forEach(el => el.classList.remove('animate-pulse'));
+
                 if (data.network_error) {
-                    statusAlert.className = 'mb-6 p-4 rounded-lg text-white font-bold text-center bg-red-500 fade-in';
-                    statusAlert.innerText = 'Networks Error! Cannot connect to internet.';
+                    statusAlert.className = 'px-3 py-1 rounded text-white text-xs font-bold bg-red-500';
+                    statusAlert.innerText = 'Network Error';
                     statusAlert.classList.remove('hidden');
                 } else {
-                    statusAlert.className = 'mb-6 p-4 rounded-lg text-white font-bold text-center bg-green-500 fade-in';
-                    statusAlert.innerText = 'All Good! Check Completed.';
+                    const failCount = data.results.filter(r => r.status !== 'ok').length;
+                    if (failCount > 0) {
+                        statusAlert.className = 'px-3 py-1 rounded text-white text-xs font-bold bg-orange-500';
+                        statusAlert.innerText = `${failCount} Issues`;
+                    } else {
+                        statusAlert.className = 'px-3 py-1 rounded text-white text-xs font-bold bg-green-500';
+                        statusAlert.innerText = 'All Good';
+                    }
                     statusAlert.classList.remove('hidden');
                 }
 
                 // Clear List Body for results
                 listBody.innerHTML = '';
+                const now = new Date();
+                lastCheckTime.innerText = `Last Checked: ${now.toLocaleTimeString()}`;
 
                 // Update Cards & Table
                 const cards = document.querySelectorAll('.site-card');
 
                 data.results.forEach((res, index) => {
                     const card = cards[index];
-                    let statusClass = '';
-                    let iconClass = '';
+                    let statusClass, iconClass, cardBorderClass, textClass, msgShort;
 
                     if (res.status === 'ok') {
-                        statusClass = 'text-green-600 bg-green-50 font-bold px-2 py-1 rounded inline-block';
+                        statusClass = 'text-green-600 bg-green-50 px-1 rounded';
                         iconClass = 'fas fa-check-circle text-green-500';
-
-                        // Card Update
-                        if (card) {
-                            card.classList.remove('border-gray-300');
-                            card.classList.add('border-green-500');
-                            card.querySelector('.status-icon').className = 'status-icon text-green-500 text-2xl pl-4 fade-in';
-                            card.querySelector('.status-icon i').className = 'fas fa-check-circle';
-                            card.querySelector('.status-msg').innerText = 'OK';
-                            card.querySelector('.status-msg').className = 'text-xs text-green-600 mt-1 status-msg';
-                        }
-
+                        cardBorderClass = 'border-green-400';
+                        textClass = 'text-green-600';
+                        msgShort = "OK";
                     } else {
-                        statusClass = 'text-red-600 bg-red-50 font-bold px-2 py-1 rounded inline-block';
+                        statusClass = 'text-red-600 bg-red-50 px-1 rounded font-bold';
                         iconClass = 'fas fa-exclamation-circle text-red-500';
+                        cardBorderClass = 'border-red-400 bg-red-50';
+                        textClass = 'text-red-600 font-bold';
+                        msgShort = "FAIL";
+                    }
 
-                        // Card Update
-                        if (card) {
-                            card.classList.remove('border-gray-300');
-                            card.classList.add('border-red-500');
-                            card.querySelector('.status-icon').className = 'status-icon text-red-500 text-2xl pl-4 fade-in';
-                            card.querySelector('.status-icon i').className = 'fas fa-exclamation-circle';
-                            card.querySelector('.status-msg').innerText = res.msg;
-                            card.querySelector('.status-msg').className = 'text-xs text-red-600 mt-1 status-msg font-bold';
-                        }
-
-                        if (!data.network_error) {
-                            statusAlert.className = 'mb-6 p-4 rounded-lg text-white font-bold text-center bg-orange-500 fade-in';
-                            statusAlert.innerText = 'Issues Found!';
-                        }
+                    // Card Update
+                    if (card) {
+                        card.className = `site-card p-2 rounded border flex items-center justify-between transition ${cardBorderClass}`;
+                        card.querySelector('.status-icon i').className = iconClass;
+                        card.querySelector('.status-msg').innerText = res.status === 'ok' ? 'OK' : 'Error';
+                        card.querySelector('.status-msg').className = `text-[10px] mt-0.5 status-msg truncate ${textClass}`;
                     }
 
                     // Append Row to Table
                     const row = `
                         <tr class="hover:bg-gray-50 transition border-b">
-                            <td class="px-6 py-3 font-medium text-gray-500">${index + 1}</td>
-                            <td class="px-6 py-3 font-bold">${res.name}</td>
-                            <td class="px-6 py-3 text-gray-500 truncate max-w-xs"><a href="${res.url}" target="_blank" class="hover:underline">${res.url}</a></td>
-                            <td class="px-6 py-3"><span class="${statusClass}">${res.status.toUpperCase()}</span></td>
-                            <td class="px-6 py-3 text-sm text-gray-500 truncate">${res.msg}</td>
+                            <td class="px-3 py-2 text-gray-500">${index + 1}</td>
+                            <td class="px-3 py-2 font-bold whitespace-nowrap">${res.name}</td>
+                            <td class="px-3 py-2 text-gray-500 truncate max-w-[100px] hidden sm:table-cell" title="${res.url}">${res.url}</td>
+                            <td class="px-3 py-2"><span class="${statusClass} text-[10px]">${msgShort}</span></td>
+                            <td class="px-3 py-2 text-gray-500 truncate max-w-[150px]" title="${res.msg}">${res.status === 'ok' ? '-' : res.msg}</td>
                         </tr>
                     `;
                     listBody.innerHTML += row;
@@ -210,14 +271,13 @@
 
             } catch (e) {
                 console.error(e);
-                statusAlert.className = 'mb-6 p-4 rounded-lg text-white font-bold text-center bg-red-500 fade-in';
-                statusAlert.innerText = 'System Error: Failed to fetch API.';
+                statusAlert.innerText = 'Err';
+                statusAlert.className = 'px-3 py-1 rounded text-white text-xs font-bold bg-red-500';
                 statusAlert.classList.remove('hidden');
-                listBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Failed to load data.</td></tr>';
             } finally {
                 // UI Reset
                 btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                btn.classList.remove('opacity-75');
                 btnIcon.classList.remove('fa-spin');
                 btnText.innerText = 'Check Now';
             }

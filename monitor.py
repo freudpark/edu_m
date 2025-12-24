@@ -27,7 +27,7 @@ class WebsiteMonitor:
             parts = line.split()
             if len(parts) >= 2:
                 name = parts[0]
-                url = parts[1]
+                url = parts[1].strip()
                 self.urls[name] = url
 
     def get_urls(self):
@@ -58,7 +58,7 @@ class WebsiteMonitor:
             if "404" in msg:
                 return "페이지를 찾을 수 없습니다. (404 Not Found)"
             if "400" in msg:
-                return "잘못된 요청(400): 서버 차단됨 (헤더 호환성 문제)"
+                return "잘못된 요청(400): 방화벽 차단 의심 (재시도 중)"
             if "500" in msg:
                 return "서버 내부 오류입니다. (500 Internal Server Error)"
             if "502" in msg or "503" in msg:
@@ -120,7 +120,8 @@ class WebsiteMonitor:
             return name, url, success, error
 
         # Run checks in parallel
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        # Reduced max_workers to 5 to avoid WAF blocking (rate limiting)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             future_to_url = {executor.submit(check_single_url, item): item for item in self.urls.items()}
             
             for future in concurrent.futures.as_completed(future_to_url):

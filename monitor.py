@@ -39,6 +39,25 @@ class WebsiteMonitor:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
+        
+        def translate_error(error_msg):
+            msg = str(error_msg).lower()
+            if "name or service not known" in msg or "getaddrinfo failed" in msg:
+                return "사이트 주소(도메인)를 찾을 수 없습니다."
+            if "connect" in msg and "refused" in msg:
+                return "사이트 연결이 거부되었습니다. (서버 다운 추정)"
+            if "timed out" in msg or "timeout" in msg:
+                return "응답 시간이 초과되었습니다. (접속 지연)"
+            if "ssl" in msg or "certificate" in msg:
+                return "보안 인증서 오류가 발생했습니다."
+            if "404" in msg:
+                return "페이지를 찾을 수 없습니다. (404 Not Found)"
+            if "500" in msg:
+                return "서버 내부 오류입니다. (500 Internal Server Error)"
+            if "502" in msg or "503" in msg:
+                return "서버가 일시적으로 사용 불가능합니다. (502/503)"
+            return f"접속 실패: {error_msg}"
+
         try:
             # verify=False handles sites with self-signed or local government certs
             response = requests.get(url, timeout=10, verify=False, headers=headers)
@@ -51,7 +70,7 @@ class WebsiteMonitor:
                 response.raise_for_status()
                 return True, None
             except requests.RequestException as e:
-                return False, str(e)
+                return False, translate_error(str(e))
 
     def check_network(self):
         """Checks intenet connectivity by connecting to Google DNS."""

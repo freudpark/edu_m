@@ -105,8 +105,8 @@
         <!-- Compact Site Grid -->
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2" id="siteGrid">
             {% for name, url in urls.items() %}
-            <div id="card-{{ loop.index }}"
-                class="site-card bg-white p-2 rounded border border-gray-200 flex items-center justify-between hover:shadow-md transition">
+            <a href="{{ url }}" target="_blank" id="card-{{ loop.index }}"
+                class="site-card bg-white p-2 rounded border border-gray-200 flex items-center justify-between hover:shadow-md transition cursor-pointer hover:border-blue-400">
                 <div class="flex-1 min-w-0 pr-2">
                     <h3 class="font-bold text-gray-700 truncate text-xs" title="{{ name }}">{{ name }}</h3>
                     <div class="text-[10px] text-gray-400 mt-0.5 status-msg truncate">Ready</div>
@@ -114,7 +114,7 @@
                 <div class="status-icon text-gray-300 text-lg">
                     <i class="fas fa-circle"></i>
                 </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
 
@@ -175,8 +175,6 @@
 
         async function manualCheck() {
             if (document.getElementById('checkBtn').disabled && !autoCheckInterval) return;
-            // If auto check is on, we allow re-triggering silently or just skip if busy?
-            // Let's allow parallel requests or just wait. JS is single threaded.
             await runCheck();
         }
 
@@ -250,7 +248,8 @@
 
                     // Card Update
                     if (card) {
-                        card.className = `site-card p-2 rounded border flex items-center justify-between transition ${cardBorderClass}`;
+                        // Maintain the layout classes but update style/border based on status
+                        card.className = `site-card p-2 rounded border flex items-center justify-between transition cursor-pointer hover:shadow-md ${cardBorderClass}`;
                         card.querySelector('.status-icon i').className = iconClass;
                         card.querySelector('.status-msg').innerText = res.status === 'ok' ? 'OK' : 'Error';
                         card.querySelector('.status-msg').className = `text-[10px] mt-0.5 status-msg truncate ${textClass}`;
@@ -261,7 +260,7 @@
                         <tr class="hover:bg-gray-50 transition border-b">
                             <td class="px-3 py-2 text-gray-500">${index + 1}</td>
                             <td class="px-3 py-2 font-bold whitespace-nowrap">${res.name}</td>
-                            <td class="px-3 py-2 text-gray-500 truncate max-w-[100px] hidden sm:table-cell" title="${res.url}">${res.url}</td>
+                            <td class="px-3 py-2 text-gray-500 truncate max-w-[100px] hidden sm:table-cell" title="${res.url}"><a href="${res.url}" target="_blank" class="hover:underline hover:text-blue-600">${res.url}</a></td>
                             <td class="px-3 py-2"><span class="${statusClass} text-[10px]">${msgShort}</span></td>
                             <td class="px-3 py-2 text-gray-500 truncate max-w-[150px]" title="${res.msg}">${res.status === 'ok' ? '-' : res.msg}</td>
                         </tr>
@@ -276,10 +275,12 @@
                 statusAlert.classList.remove('hidden');
             } finally {
                 // UI Reset
-                btn.disabled = false;
-                btn.classList.remove('opacity-75');
+                if (!document.getElementById('autoCheckToggle').checked) {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75');
+                }
                 btnIcon.classList.remove('fa-spin');
-                btnText.innerText = 'Check Now';
+                if (btnText.innerText === 'Checking...') btnText.innerText = 'Check Now';
             }
         }
     </script>

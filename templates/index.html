@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,10 +10,22 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
+
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
 
     <!-- Navbar -->
@@ -30,14 +42,15 @@
 
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto px-4 py-6">
-        
+
         <!-- Controls -->
         <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm">
             <div>
                 <h2 class="text-lg font-semibold">Website Status</h2>
                 <p class="text-sm text-gray-500">Total Sites: {{ urls|length }}</p>
             </div>
-            <button id="checkBtn" onclick="runCheck()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full shadow transition transform hover:scale-105 flex items-center gap-2">
+            <button id="checkBtn" onclick="runCheck()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full shadow transition transform hover:scale-105 flex items-center gap-2">
                 <i class="fas fa-sync-alt" id="btnIcon"></i>
                 <span id="btnText">Check Now</span>
             </button>
@@ -46,13 +59,15 @@
         <!-- Status Overview (Hidden initially) -->
         <div id="statusAlert" class="hidden mb-6 p-4 rounded-lg text-white font-bold text-center"></div>
 
-        <!-- Site List -->
+        <!-- Site List Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="siteGrid">
             {% for name, url in urls.items() %}
-            <div id="card-{{ loop.index }}" class="site-card bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-gray-300 flex items-center justify-between">
+            <div id="card-{{ loop.index }}"
+                class="site-card bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition border-l-4 border-gray-300 flex items-center justify-between">
                 <div class="flex-1 min-w-0">
                     <h3 class="font-bold text-gray-800 truncate" title="{{ name }}">{{ name }}</h3>
-                    <a href="{{ url }}" target="_blank" class="text-sm text-blue-500 hover:underline truncate block">{{ url }}</a>
+                    <a href="{{ url }}" target="_blank" class="text-sm text-blue-500 hover:underline truncate block">{{
+                        url }}</a>
                     <p class="text-xs text-gray-400 mt-1 status-msg">Ready</p>
                 </div>
                 <div class="status-icon text-gray-300 text-2xl pl-4">
@@ -60,6 +75,32 @@
                 </div>
             </div>
             {% endfor %}
+        </div>
+
+        <!-- Connection Check List Table (Bottom) -->
+        <div class="mt-10 bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-gray-800 text-white px-6 py-3">
+                <h3 class="font-bold"><i class="fas fa-list-ul"></i> Connection Check List</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-600 border-b">
+                        <tr>
+                            <th class="px-6 py-3 w-10">#</th>
+                            <th class="px-6 py-3">Region Name</th>
+                            <th class="px-6 py-3">URL</th>
+                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">Message</th>
+                        </tr>
+                    </thead>
+                    <tbody id="checkListBody" class="divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-400">Click "Check Now" to see
+                                results.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </main>
@@ -75,17 +116,19 @@
             const btnIcon = document.getElementById('btnIcon');
             const btnText = document.getElementById('btnText');
             const statusAlert = document.getElementById('statusAlert');
-            
+            const listBody = document.getElementById('checkListBody');
+
             // UI Loading State
             btn.disabled = true;
             btn.classList.add('opacity-75', 'cursor-not-allowed');
             btnIcon.classList.add('fa-spin');
             btnText.innerText = 'Checking...';
             statusAlert.classList.add('hidden');
+            listBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-blue-500"><i class="fas fa-spinner fa-spin"></i> Checking sites...</td></tr>';
 
             // Reset Cards
             document.querySelectorAll('.site-card').forEach(card => {
-                card.classList.remove('border-green-500', 'border-red-500');
+                card.classList.remove('border-green-500', 'border-red-500', 'border-orange-500');
                 card.classList.add('border-gray-300');
                 card.querySelector('.status-icon').className = 'status-icon text-gray-300 text-2xl pl-4';
                 card.querySelector('.status-icon i').className = 'fas fa-circle';
@@ -107,44 +150,62 @@
                     statusAlert.classList.remove('hidden');
                 }
 
-                // Update Cards
-                const cards = document.querySelectorAll('.site-card');
-                // The order in jinja loop maps to list order. 
-                // However, API returns list. We need to match by name or index. 
-                // Since names are unique, let's look up by name logic if simple index match isn't robust.
-                // But for simplicity, the API returns results in reading order of file? 
-                // monitor.urls is dict (ordered in Py3.7+). API iterates monitor.urls. 
-                // So index should match.
-                
-                data.results.forEach((res, index) => {
-                    const card = cards[index]; // Simple index matching based on rendered order
-                    if (card) {
-                        const iconDiv = card.querySelector('.status-icon');
-                        const iconI = card.querySelector('.status-icon i');
-                        const msgP = card.querySelector('.status-msg');
+                // Clear List Body for results
+                listBody.innerHTML = '';
 
-                        if (res.status === 'ok') {
+                // Update Cards & Table
+                const cards = document.querySelectorAll('.site-card');
+
+                data.results.forEach((res, index) => {
+                    const card = cards[index];
+                    let statusClass = '';
+                    let iconClass = '';
+
+                    if (res.status === 'ok') {
+                        statusClass = 'text-green-600 bg-green-50 font-bold px-2 py-1 rounded inline-block';
+                        iconClass = 'fas fa-check-circle text-green-500';
+
+                        // Card Update
+                        if (card) {
                             card.classList.remove('border-gray-300');
                             card.classList.add('border-green-500');
-                            iconDiv.className = 'status-icon text-green-500 text-2xl pl-4 fade-in';
-                            iconI.className = 'fas fa-check-circle';
-                            msgP.innerText = 'OK';
-                            msgP.className = 'text-xs text-green-600 mt-1 status-msg';
-                        } else {
+                            card.querySelector('.status-icon').className = 'status-icon text-green-500 text-2xl pl-4 fade-in';
+                            card.querySelector('.status-icon i').className = 'fas fa-check-circle';
+                            card.querySelector('.status-msg').innerText = 'OK';
+                            card.querySelector('.status-msg').className = 'text-xs text-green-600 mt-1 status-msg';
+                        }
+
+                    } else {
+                        statusClass = 'text-red-600 bg-red-50 font-bold px-2 py-1 rounded inline-block';
+                        iconClass = 'fas fa-exclamation-circle text-red-500';
+
+                        // Card Update
+                        if (card) {
                             card.classList.remove('border-gray-300');
                             card.classList.add('border-red-500');
-                            iconDiv.className = 'status-icon text-red-500 text-2xl pl-4 fade-in';
-                            iconI.className = 'fas fa-exclamation-circle';
-                            msgP.innerText = res.msg;
-                            msgP.className = 'text-xs text-red-600 mt-1 status-msg font-bold';
-                            
-                            // If any error, change main alert to warning if it was green
-                            if (!data.network_error) {
-                                statusAlert.className = 'mb-6 p-4 rounded-lg text-white font-bold text-center bg-orange-500 fade-in';
-                                statusAlert.innerText = 'Issues Found!';
-                            }
+                            card.querySelector('.status-icon').className = 'status-icon text-red-500 text-2xl pl-4 fade-in';
+                            card.querySelector('.status-icon i').className = 'fas fa-exclamation-circle';
+                            card.querySelector('.status-msg').innerText = res.msg;
+                            card.querySelector('.status-msg').className = 'text-xs text-red-600 mt-1 status-msg font-bold';
+                        }
+
+                        if (!data.network_error) {
+                            statusAlert.className = 'mb-6 p-4 rounded-lg text-white font-bold text-center bg-orange-500 fade-in';
+                            statusAlert.innerText = 'Issues Found!';
                         }
                     }
+
+                    // Append Row to Table
+                    const row = `
+                        <tr class="hover:bg-gray-50 transition border-b">
+                            <td class="px-6 py-3 font-medium text-gray-500">${index + 1}</td>
+                            <td class="px-6 py-3 font-bold">${res.name}</td>
+                            <td class="px-6 py-3 text-gray-500 truncate max-w-xs"><a href="${res.url}" target="_blank" class="hover:underline">${res.url}</a></td>
+                            <td class="px-6 py-3"><span class="${statusClass}">${res.status.toUpperCase()}</span></td>
+                            <td class="px-6 py-3 text-sm text-gray-500 truncate">${res.msg}</td>
+                        </tr>
+                    `;
+                    listBody.innerHTML += row;
                 });
 
             } catch (e) {
@@ -152,6 +213,7 @@
                 statusAlert.className = 'mb-6 p-4 rounded-lg text-white font-bold text-center bg-red-500 fade-in';
                 statusAlert.innerText = 'System Error: Failed to fetch API.';
                 statusAlert.classList.remove('hidden');
+                listBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Failed to load data.</td></tr>';
             } finally {
                 // UI Reset
                 btn.disabled = false;
@@ -162,4 +224,5 @@
         }
     </script>
 </body>
+
 </html>

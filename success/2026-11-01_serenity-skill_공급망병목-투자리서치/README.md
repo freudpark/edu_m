@@ -28,10 +28,16 @@ AI 에이전트(Claude Code, Codex)용 투자 리서치 방법론 스킬입니�
 ```
 /serenity-skill 한국 시장으로, [테마 또는 회사] 를 조사해줘
 ```
-주의: 기본 대상이 중국 A주이므로 **"한국 시장"이라고 꼭 지정**해야 합니다.
+설치본은 한국 시장이 기본값입니다(아래 변경 이력 참고).
 
 ## stock_bot과의 관계
 자동 연동 기능은 없습니다. stock_bot이 고른 후보(stage1/stage2)를 사람이 검토할 때 정성 분석 도구로 활용합니다.
 
 ## 삭제 방법
 `rm -rf /root/.claude/skills/serenity-skill`
+
+## 변경 이력
+- **2026-11-01 한국 시장 기본값으로 수정**: 원본은 기본 대상이 중국 A주입니다. 설치본은 "한국 시장"이라고 말하지 않아도 KOSPI/KOSDAQ를 기본으로 조사하도록 고쳤습니다.
+  - 수정 파일: `SKILL.md`, `references/market-source-playbook.md`. 고친 파일은 `korea-default/`에 있고, 원본은 `repo/`에 그대로 둡니다.
+  - DART, KIND, KRX 출처와 6자리 종목코드 사용, 연결/별도 재무제표 구분 지침을 추가했습니다.
+  - 다시 설치할 때는 `repo/`를 복사한 뒤 `korea-default/`의 파일로 덮어씁니다.

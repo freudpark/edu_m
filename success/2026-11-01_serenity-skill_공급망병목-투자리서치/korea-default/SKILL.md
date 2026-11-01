@@ -73,3 +73,4 @@ Provide research judgment, not trade execution, personalized position sizing, gu
 - [CPO company challenge](examples/cpo-company-challenge.md): testing specific supplier claims.
 - [Learning conversation](examples/demo-conversation.md): a fictional coaching example, not a market ranking.
 - [Prompt pack](assets/research-prompt-pack.md): ready-to-use starting questions.
+- [Research sources](references/research-sources.md): index of the method's public sources.

@@ -1,5 +1,7 @@
 # Market Source Playbook
 
+Contents: [Korea (default)](#korea) · [US](#us) · [A-shares](#a-shares) · [Hong Kong](#hong-kong) · [Taiwan](#taiwan) · [Japan](#japan) · [Europe](#europe)
+
 Use this file when the market determines which source path matters.
 
 Korean listed stocks are the default market (see the Korea section). For Korean research, start with the company's six-digit KRX code, reporting period and document type on [DART](https://dart.fss.or.kr/) or [KIND](https://kind.krx.co.kr/); distinguish consolidated (연결) from separate (별도) statements.

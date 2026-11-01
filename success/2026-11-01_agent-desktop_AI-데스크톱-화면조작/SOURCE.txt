@@ -1,0 +1,1 @@
+source: https://github.com/vercel-labs/agent-desktop @ 9eb9b29 (npm: agent-desktop)
